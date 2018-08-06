@@ -7,19 +7,65 @@ output:
 
 
 ## Loading and preprocessing the data
-
+```{r data, echo=TRUE}
+library(dplyr)
+datos<-read.csv("activity.csv", stringsAsFactors=FALSE)
+by_day<-group_by(datos, date)
+```
 
 
 ## What is mean total number of steps taken per day?
+```{r histogram, echo=TRUE}
+sum_day<-summarise(by_day, suma=sum(steps, na.rm=TRUE))
+h<-hist(sum_day$suma, 
+     main="Daily sum of registered steps", 
+     xlab="Steps by day", 
+     col="darkmagenta",
+     border="black", 
+     breaks=c(0, 2500,  5000, 7500, 10000, 12500, 15000,17500, 20000, 22500, 25000))
 
-
+media<-mean(sum_day$suma, na.rm=TRUE)
+mediana<-median(sum_day$suma, na.rm=TRUE)
+print(paste("Mean of the total number of steps taken by day: ",toString(media)))
+print(paste("Median of the total number of steps taken by day: ", toString(mediana)))
+```
 
 ## What is the average daily activity pattern?
-
+```{r time series, echo=TRUE}
+by_five<-group_by(datos, interval)
+avg_five<-summarise(by_five, media=mean(steps, na.rm=TRUE))
+plot(avg_five$interval, avg_five$media, type="l",
+     main="Average number of steps every five minutes interval across all the days",
+     xlab="Time interval",
+     ylab="Average number of steps")
+maximo=max(avg_five$media)
+maximo_interval=avg_five$interval[avg_five$media == maximo]
+print(paste("The interval which contains the maximum number of steps on average is: ",toString(maximo_interval)))
+print(paste("The maximum number of steps on average is: ",toString(maximo)))
+```
 
 
 ## Imputing missing values
+```{r impute, echo=TRUE}
+ausentes<-is.na(datos$steps)
+print(paste("The total number of missing data is: ",toString(sum(ausentes))))
+imputed_datos<-left_join(datos, avg_five, by="interval")
+imputed_datos$steps[ausentes]<-imputed_datos$media[ausentes]
+imputed_datos<-imputed_datos[,1:3]
+imputed_by_day<-group_by(imputed_datos, date)
+imputed_sum_day<-summarise(imputed_by_day, suma=sum(steps, na.rm=TRUE))
+h<-hist(imputed_sum_day$suma, 
+     main="Daily sum of registered steps. Imputed Data", 
+     xlab="Steps by day", 
+     col="darkmagenta",
+     border="black", 
+     breaks=c(0, 2500,  5000, 7500, 10000, 12500, 15000,17500, 20000, 22500, 25000))
 
+imputed_media<-mean(imputed_sum_day$suma, na.rm=TRUE)
+imputed_mediana<-median(imputed_sum_day$suma, na.rm=TRUE)
+print(paste("Mean of the total number of steps taken by day having imputed missing data: ",toString(imputed_media)))
+print(paste("Median of the total number of steps taken by day having imputed missing data: ", toString(imputed_mediana)))
 
+```
 
 ## Are there differences in activity patterns between weekdays and weekends?
