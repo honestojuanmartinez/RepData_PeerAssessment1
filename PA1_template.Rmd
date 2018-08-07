@@ -25,9 +25,12 @@ h<-hist(sum_day$suma,
      breaks=c(0, 2500,  5000, 7500, 10000, 12500, 15000,17500, 20000, 22500, 25000))
 
 media<-mean(sum_day$suma, na.rm=TRUE)
+fmedia<-format(media, nsmall = 2, big.mark = ".")
 mediana<-median(sum_day$suma, na.rm=TRUE)
-print(paste("Mean of the total number of steps taken by day: ",toString(media)))
-print(paste("Median of the total number of steps taken by day: ", toString(mediana)))
+fmediana<-format(mediana, nsmall = 2, big.mark = ".")
+
+print(paste("Mean of the total number of steps taken by day: ",fmedia))
+print(paste("Median of the total number of steps taken by day: ", fmediana))
 ```
 
 ## What is the average daily activity pattern?
@@ -39,9 +42,10 @@ plot(avg_five$interval, avg_five$media, type="l",
      xlab="Time interval",
      ylab="Average number of steps")
 maximo=max(avg_five$media)
+fmaximo<-format(maximo, nsmall = 2, big.mark = ".")
 maximo_interval=avg_five$interval[avg_five$media == maximo]
 print(paste("The interval which contains the maximum number of steps on average is: ",toString(maximo_interval)))
-print(paste("The maximum number of steps on average is: ",toString(maximo)))
+print(paste("The maximum number of steps on average is: ",fmaximo))
 ```
 
 
@@ -62,10 +66,45 @@ h<-hist(imputed_sum_day$suma,
      breaks=c(0, 2500,  5000, 7500, 10000, 12500, 15000,17500, 20000, 22500, 25000))
 
 imputed_media<-mean(imputed_sum_day$suma, na.rm=TRUE)
+fimputed_media<-format(imputed_media, nsmall = 2, big.mark = ".")
 imputed_mediana<-median(imputed_sum_day$suma, na.rm=TRUE)
-print(paste("Mean of the total number of steps taken by day having imputed missing data: ",toString(imputed_media)))
-print(paste("Median of the total number of steps taken by day having imputed missing data: ", toString(imputed_mediana)))
+fimputed_mediana<-format(imputed_mediana, nsmall = 2, big.mark = ".")
+print(paste("Mean of the total number of steps taken by day having imputed missing data: ",fimputed_media))
+print(paste("Median of the total number of steps taken by day having imputed missing data: ", fimputed_mediana))
+
+
+print(paste("The data imputation results in the following variation of the mean of steps: ", format(media-imputed_media, nsmall=2, big.mark=",")))
+print(paste("The data imputation results in the following variation of the median of steps: ", format(mediana-imputed_mediana, nsmall=2, big.mark=",")))
+  
 
 ```
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r weekend, echo=TRUE}
+datos$dia<-weekdays(as.Date(datos$date))
+datos$weekend=0
+datos$weekend[datos$dia == "sábado" | datos$dia == "domingo"] <- 1
+datos$fweekend<-factor(datos$weekend, labels = c("Weekday", "Weekend"))
+
+by_weekday<-group_by(datos, fweekend, interval )
+avg_five<-summarise(by_weekday, media=mean(steps, na.rm=TRUE))
+avg_weekday<-avg_five[avg_five$fweekend=="Weekday",]
+avg_weekend<-avg_five[avg_five$fweekend=="Weekend",]
+
+par(mfrow=c(2,1))
+plot(avg_five$interval[avg_five$fweekend=="Weekday"], avg_five$media[avg_five$fweekend=="Weekday"], type="l",
+     xlab="Weekday",
+     ylab="Average number of steps")
+plot(avg_five$interval[avg_five$fweekend=="Weekend"], avg_five$media[avg_five$fweekend=="Weekend"], type="l",
+     xlab="Weekend",
+     ylab="Average number of steps")
+title("Average number of steps every five minutes interval across all the days", outer = TRUE)
+
+
+library(ggplot2)
+library(ggpubr)
+l1<-ggscatter(avg_weekday, x="interval", y="media")
+l2<-ggscatter(avg_weekend,  x="interval", y="media")
+ggarrange(l1, l2, ncol=1, nrow=2)
+
+```
