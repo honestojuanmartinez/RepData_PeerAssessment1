@@ -83,7 +83,7 @@ print(paste("The data imputation results in the following variation of the media
 ```{r weekend, echo=TRUE}
 datos$dia<-weekdays(as.Date(datos$date))
 datos$weekend=0
-datos$weekend[datos$dia == "sábado" | datos$dia == "domingo"] <- 1
+datos$weekend[datos$dia == "sï¿½bado" | datos$dia == "domingo"] <- 1
 datos$fweekend<-factor(datos$weekend, labels = c("Weekday", "Weekend"))
 
 by_weekday<-group_by(datos, fweekend, interval )
@@ -103,8 +103,9 @@ title("Average number of steps every five minutes interval across all the days",
 
 library(ggplot2)
 library(ggpubr)
-l1<-ggscatter(avg_weekday, x="interval", y="media")
-l2<-ggscatter(avg_weekend,  x="interval", y="media")
-ggarrange(l1, l2, ncol=1, nrow=2)
+l1<-ggplot(data=avg_weekday, aes(x=interval, y=media), xlab="Weekday", ylab="Average Steps") +geom_line(color="blue")+ ggtitle("5-minutes average number of steps across weekdays and    weekends")
+l2<-ggplot(data=avg_weekend, aes(x=interval, y=media, xlab="Weekend", ylab="Average Steps")) +geom_line(color="darkred")
+ggarrange(l1, l2, ncol=1, nrow=2) 
 
 ```
+
